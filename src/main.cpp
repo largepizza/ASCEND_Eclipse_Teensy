@@ -1,36 +1,85 @@
 #include <Arduino.h>
-#include <oled.h>
 #include "pinout.h"
+#include "system.hpp"
+#include "sd_filesystem.hpp"
+#include "display.hpp"
+
+#
 
 
-OLED Display(PIN_SCREEN_SDA, PIN_SCREEN_SCL, NO_RESET_PIN, OLED::W_128, OLED::H_64, OLED::CTRL_SH1106, 0x3C);
+//Global Variables
+
+
+//Status Power On Variables
+uint32_t t_powerOn = 0;
+float powerOnHold = 0;
+
 
 void setup() {
 
   setupPins();
 
-  digitalWrite(PIN_SCREEN_EN, HIGH);
-  Display.begin();
 
+  digitalWrite(LED_BUILTIN, HIGH);
+  t_powerOn = millis();
+
+  turnDisplayOn();
+  setupDisplay();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
 
-  // Method 1: pixel position
-  
-  Display.clear();
-  
-  Display.setCursor(6,8);
-  Display.printf("Hello World");
+  //State Machine
+  switch (systemStatus) {
+    case STATUS_POWER_ON:
+      //Display Power On Screen
+      
+;
 
-  if (digitalRead(PIN_BUTTON) == LOW) {
-    Display.setCursor(6,16);
-    Display.printf("Button Pressed");
+      if (buttonStatus == BUTTON_PRESSED) {
+        powerOnHold++;
+        t_powerOn += 20;
+        delay(5);
+      }
+      getButton();
+
+      Display.clear();
+      drawProgressBar(SCREEN_WIDTH / 2, 55, SCREEN_WIDTH / 2, 8, powerOnHold);
+      displayPowerOnScreen();
+
+
+      if (powerOnHold > 100) {
+        systemStatus = STATUS_BOOT_MENU;
+      }
+      if (millis() - t_powerOn > 3000) {
+        systemStatus = STATUS_DATA_LOGGER;
+      }
+      
+      break;
+    case STATUS_BOOT_MENU:
+      //Display Boot Menu
+      Display.clear();
+      Display.setCursor(0, 0);
+      Display.print("Boot Menu");
+      Display.display();
+
+      delay(100);
+
+      break;
+    case STATUS_DATA_LOGGER:
+      //Data Logger
+      Display.clear();
+      Display.setCursor(0, 0);
+      Display.print("Data Logger");
+      Display.display();
+
+      delay(100);
+
+      break;
+      
   }
 
-  Display.display();
+  
 
-  delay(10);
 }
 
