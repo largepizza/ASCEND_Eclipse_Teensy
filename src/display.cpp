@@ -31,6 +31,11 @@ void drawProgressBar(uint8_t x, uint8_t y, uint8_t width, uint8_t height, float 
     Display.draw_rectangle(x-width/2, y-height/2, x-width/2+width*progress/100.0, y+height/2, OLED::tFillmode::SOLID, OLED::tColor::WHITE);
 }
 
+void drawCenteredText(uint8_t x, uint8_t y, String text) {
+  Display.setCursor(x - text.length() * 6 / 2, y);
+  Display.print(text);
+}
+
 void displayPowerOnScreen() {
   Display.setCursor(20, 8);
   Display.print("-VLF ECLIPSE-");
@@ -38,8 +43,5 @@ void displayPowerOnScreen() {
   Display.print("Hold button for");
   Display.setCursor(24,40);
   Display.print("boot menu");
-
-
-  Display.display();
 }
 

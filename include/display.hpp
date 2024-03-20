@@ -26,6 +26,7 @@ void turnDisplayOff();
 
 //draw functions
 void drawProgressBar(uint8_t x, uint8_t y, uint8_t width, uint8_t height, float progress);
+void drawCenteredText(uint8_t x, uint8_t y, String text);
 
 void displayPowerOnScreen();
 void displayBootMenuScreen();

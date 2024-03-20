@@ -7,6 +7,8 @@
 
 
 #define EEPROM_POWER_CYCLE_ADDRESS 0xAE
+#define BUTTON_HYSTERISIS 50
+
 
 //Overall System Status
 typedef enum : uint32_t {
@@ -46,6 +48,7 @@ extern button_t buttonStatus;
 void setupPins();
 void buttonHandler();
 void getButton();
+void printButtonStatus();
 
 
 

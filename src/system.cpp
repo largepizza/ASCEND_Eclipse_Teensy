@@ -1,10 +1,14 @@
 #include <system.hpp>
 
 
+
 //Global Variables
 status_t systemStatus = STATUS_POWER_ON;
 boot_menu_t bootMenuStatus = BOOT_MENU_DATA_LOGGER;
 button_t buttonStatus = BUTTON_UNPRESSED;
+
+//Button Hysterisis
+uint32_t t_button = 0;
 
 void setupPins() {
 
@@ -43,20 +47,40 @@ void setupPins() {
   //pinMode(PIN_IMU_SCL, OUTPUT);
 
   //Button ISR
-  attachInterrupt(digitalPinToInterrupt(PIN_BUTTON), buttonHandler, FALLING);
+  attachInterrupt(PIN_BUTTON, buttonHandler, CHANGE);
 
 }
+
+button_t lastStatus;
 
 void buttonHandler() {
-  getButton();
-}
 
-void getButton() {
+  button_t buttonStatusTemp;
+  
   if (digitalRead(PIN_BUTTON) == LOW) {
-    buttonStatus = BUTTON_PRESSED;
+    buttonStatusTemp = BUTTON_PRESSED;
   }
   else {
-    buttonStatus = BUTTON_UNPRESSED;
+    buttonStatusTemp = BUTTON_UNPRESSED;
+  }
+
+
+  if (millis() - t_button > BUTTON_HYSTERISIS && buttonStatusTemp != lastStatus) {
+    t_button = millis();
+    buttonStatus = buttonStatusTemp;
+    printButtonStatus();
+  }
+  
+  lastStatus = buttonStatusTemp;
+}
+
+
+void printButtonStatus() {
+  if (buttonStatus == BUTTON_PRESSED) {
+    Serial.println("Button Pressed");
+  }
+  else {
+    Serial.println("Button Unpressed");
   }
 }
 
