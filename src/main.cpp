@@ -3,8 +3,7 @@
 #include "system.hpp"
 #include "sd_filesystem.hpp"
 #include "display.hpp"
-
-#
+//#include <wt901c.hpp>
 
 
 //Global Variables
@@ -12,7 +11,7 @@ extern status_t systemStatus;
 extern boot_menu_t bootMenuStatus;
 extern button_t buttonStatus;
 extern uint32_t t_button;
-
+extern WT901C IMU;
 //Status Power On Variables
 uint32_t t_powerOn = 0;
 float powerOnHold = 0;
@@ -21,12 +20,16 @@ float powerOnHold = 0;
 bool buttonHold = false;
 float bootMenuHold = 0;
 
+//IMU
+
 void setup() {
 
 
   //Setup Serial
   Serial.begin(115200);
   setupPins();
+
+  IMU.init();
 
 
   digitalWrite(LED_BUILTIN, HIGH);
@@ -41,6 +44,16 @@ void loop() {
   //State Machine
   switch (systemStatus) {
     case STATUS_POWER_ON:
+    {
+      /*
+      
+      ██████   ██████  ██     ██ ███████ ██████       ██████  ███    ██ 
+      ██   ██ ██    ██ ██     ██ ██      ██   ██     ██    ██ ████   ██ 
+      ██████  ██    ██ ██  █  ██ █████   ██████      ██    ██ ██ ██  ██ 
+      ██      ██    ██ ██ ███ ██ ██      ██   ██     ██    ██ ██  ██ ██ 
+      ██       ██████   ███ ███  ███████ ██   ██      ██████  ██   ████ 
+                                                                                                                              
+      */
       //Display Power On Screen
       
 ;
@@ -62,15 +75,28 @@ void loop() {
       //State Transition
       if (powerOnHold > 100) {
         //Boot Menu if button is held
+        digitalWrite(LED_BUILTIN, LOW);
         systemStatus = STATUS_BOOT_MENU;
       }
       if (millis() - t_powerOn > 3000) {
         //Data Logger if button is not held
+        digitalWrite(LED_BUILTIN, LOW);
         systemStatus = STATUS_DATA_LOGGER;
       }
       
       break;
+    }
     case STATUS_BOOT_MENU:
+    {
+    /*
+        
+    ██████   ██████   ██████  ████████     ███    ███ ███████ ███    ██ ██    ██ 
+    ██   ██ ██    ██ ██    ██    ██        ████  ████ ██      ████   ██ ██    ██ 
+    ██████  ██    ██ ██    ██    ██        ██ ████ ██ █████   ██ ██  ██ ██    ██ 
+    ██   ██ ██    ██ ██    ██    ██        ██  ██  ██ ██      ██  ██ ██ ██    ██ 
+    ██████   ██████   ██████     ██        ██      ██ ███████ ██   ████  ██████  
+                                                                                                                                                    
+    */
       //Display Boot Menu bar
       Display.clear();
       Display.setCursor(8, 0);
@@ -137,7 +163,18 @@ void loop() {
       Display.display();
 
       break;
+    }
     case STATUS_DATA_LOGGER:
+    {
+    /*
+    
+    ██████   █████  ████████  █████      ██       ██████   ██████   ██████  ███████ ██████  
+    ██   ██ ██   ██    ██    ██   ██     ██      ██    ██ ██       ██       ██      ██   ██ 
+    ██   ██ ███████    ██    ███████     ██      ██    ██ ██   ███ ██   ███ █████   ██████  
+    ██   ██ ██   ██    ██    ██   ██     ██      ██    ██ ██    ██ ██    ██ ██      ██   ██ 
+    ██████  ██   ██    ██    ██   ██     ███████  ██████   ██████   ██████  ███████ ██   ██ 
+                                                                                                                                                                        
+    */
       //Data Logger
       Display.clear();
       Display.setCursor(0, 0);
@@ -147,36 +184,104 @@ void loop() {
       delay(100);
 
       break;
+    }
     case STATUS_IMU_DATA:
+    {
+      /*
+      
+      ██ ███    ███ ██    ██     ██████   █████  ████████  █████  
+      ██ ████  ████ ██    ██     ██   ██ ██   ██    ██    ██   ██ 
+      ██ ██ ████ ██ ██    ██     ██   ██ ███████    ██    ███████ 
+      ██ ██  ██  ██ ██    ██     ██   ██ ██   ██    ██    ██   ██ 
+      ██ ██      ██  ██████      ██████  ██   ██    ██    ██   ██ 
+                                                                                      
+      */
       //IMU Data
+      IMU.getDataBasic();
+      float accelX = IMU.fAcc[0]; /* get accelerometer X value */
+      float accelY = IMU.fAcc[1];/* get accelerometer Y value */
+      float accelZ = IMU.fAcc[2];/* get accelerometer Z value */
+
+      float angleX = IMU.fAngle[0]; /* get mag X value */
+      float angleY = IMU.fAngle[1];/* get mag Y value */
+      float angleZ = IMU.fAngle[2];/* get mag Z value */
+
+
       Display.clear();
-      Display.setCursor(0, 0);
-      Display.print("IMU Data");
+      //Display Accelerometer Data
+      Display.setCursor(4, 0);
+      Display.print("Accel");
+      Display.setCursor(0, 8);
+      Display.print("X: ");
+      Display.print(accelX);
+      Display.setCursor(0, 16);
+      Display.print("Y: ");
+      Display.print(accelY);
+      Display.setCursor(0, 24);
+      Display.print("Z: ");
+      Display.print(accelZ);
+
+      //Display Magnetometer Data
+      Display.setCursor(4, 32);
+      Display.print("Angles");
+      Display.setCursor(0, 40);
+      Display.print("X: ");
+      Display.print(angleX);
+      Display.setCursor(0, 48);
+      Display.print("Y: ");
+      Display.print(angleY);
+      Display.setCursor(0, 56);
+      Display.print("Z: ");
+      Display.print(angleZ);
+
+      //Compass
+      drawCompass(SCREEN_WIDTH / 2 + SCREEN_WIDTH / 4, SCREEN_HEIGHT / 2, 30);
+
+      
       Display.display();
 
-      delay(100);
-
       break;
+    }
     case STATUS_IMU_CALIBRATION:
+    {
+    
+      /*
+      ██ ███    ███ ██    ██      ██████  █████  ██      ██ ██████  ██████   █████  ████████ ██  ██████  ███    ██ 
+      ██ ████  ████ ██    ██     ██      ██   ██ ██      ██ ██   ██ ██   ██ ██   ██    ██    ██ ██    ██ ████   ██ 
+      ██ ██ ████ ██ ██    ██     ██      ███████ ██      ██ ██████  ██████  ███████    ██    ██ ██    ██ ██ ██  ██ 
+      ██ ██  ██  ██ ██    ██     ██      ██   ██ ██      ██ ██   ██ ██   ██ ██   ██    ██    ██ ██    ██ ██  ██ ██ 
+      ██ ██      ██  ██████       ██████ ██   ██ ███████ ██ ██████  ██   ██ ██   ██    ██    ██  ██████  ██   ████ 
+      */
+
+
+
       //IMU Calibration
       Display.clear();
       Display.setCursor(0, 0);
       Display.print("IMU Calibration");
       Display.display();
 
-      delay(100);
-
       break;
+    }
     case STATUS_PI_STANDBY:
+    {
+      /*
+      
+      ██████  ██     ███████ ████████  █████  ███    ██ ██████  ██████  ██    ██ 
+      ██   ██ ██     ██         ██    ██   ██ ████   ██ ██   ██ ██   ██  ██  ██  
+      ██████  ██     ███████    ██    ███████ ██ ██  ██ ██   ██ ██████    ████   
+      ██      ██          ██    ██    ██   ██ ██  ██ ██ ██   ██ ██   ██    ██    
+      ██      ██     ███████    ██    ██   ██ ██   ████ ██████  ██████     ██    
+                                                                              
+      */
       //Pi Standby
       Display.clear();
       Display.setCursor(0, 0);
       Display.print("Pi Standby");
       Display.display();
-
-      delay(100);
-
+      
       break;
+    }
       
   }
 

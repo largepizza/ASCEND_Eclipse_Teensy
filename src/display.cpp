@@ -5,6 +5,8 @@ OLED Display(PIN_SCREEN_SDA, PIN_SCREEN_SCL, NO_RESET_PIN, OLED::W_128, OLED::H_
 
 displayStatus_t displayStatus = DISPLAY_OFF;
 
+extern WT901C IMU;
+
 void setupDisplay() {
   Display.begin();
   Display.clear();
@@ -43,5 +45,31 @@ void displayPowerOnScreen() {
   Display.print("Hold button for");
   Display.setCursor(24,40);
   Display.print("boot menu");
+}
+
+//Dot product
+float dotProduct(float a[3], float b[3]) {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
+//Magnitude
+float magnitude(float a[3]) {
+  return sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
+}
+
+void drawCompass(uint8_t x, uint8_t y, uint8_t radius) {
+  float mag = magnitude(IMU.fMag);
+
+  float magXNormalized = IMU.fMag[0] / mag;
+  float magYNormalized = IMU.fMag[1] / mag;
+  float magZNormalized = IMU.fMag[2] / mag;
+
+  //Draw Compass
+  Display.draw_circle(x, y, radius, OLED::tFillmode::HOLLOW, OLED::tColor::WHITE);
+
+
+  Display.draw_line(x, y, (float)x + (float)radius * magXNormalized, (float)y + (float)radius * magYNormalized, OLED::tColor::WHITE);
+
+  
 }
 

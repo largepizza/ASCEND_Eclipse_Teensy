@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include "pinout.h"
 #include "sd_filesystem.hpp"
+#include "wt901c.hpp"
 
 
 #define EEPROM_POWER_CYCLE_ADDRESS 0xAE
@@ -40,8 +41,8 @@ typedef enum : uint32_t {
 //Global Variables
 extern status_t systemStatus;
 extern boot_menu_t bootMenuStatus;
-
 extern button_t buttonStatus;
+extern WT901C IMU;
 
 
 //Function Prototypes

@@ -10,6 +10,9 @@ button_t buttonStatus = BUTTON_UNPRESSED;
 //Button Hysterisis
 uint32_t t_button = 0;
 
+//IMU
+WT901C IMU;
+
 void setupPins() {
 
   //Board Buttons
@@ -43,8 +46,7 @@ void setupPins() {
   //pinMode(PIN_IMU_RX, INPUT);
 
   //IMU - I2C
-  //pinMode(PIN_IMU_SDA, OUTPUT);
-  //pinMode(PIN_IMU_SCL, OUTPUT);
+
 
   //Button ISR
   attachInterrupt(PIN_BUTTON, buttonHandler, CHANGE);
