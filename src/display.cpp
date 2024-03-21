@@ -5,7 +5,32 @@ OLED Display(PIN_SCREEN_SDA, PIN_SCREEN_SCL, NO_RESET_PIN, OLED::W_128, OLED::H_
 
 displayStatus_t displayStatus = DISPLAY_OFF;
 
+//Power Switches
+extern PowerSwitch screenSwitch;
+extern PowerSwitch piSwitch;
+
+//Voltage Sensors
+extern Voltage batteryVoltage;
+extern Voltage main5vVoltage;
+extern Voltage pi5vVoltage;
+
+//Current Sensors
+extern Current batteryCurrent;
+
+//Thermistors
+extern Thermistor tempUp;
+extern Thermistor tempDown;
+
+//IMU
 extern WT901C IMU;
+
+//Pi
+extern rpi_status_t rpiStatus;
+//Pi status strings
+String rpiStatusStrings[] = {"OFF", "WAITING", "DATA GOOD"};
+
+
+
 
 void setupDisplay() {
   Display.begin();
@@ -13,15 +38,7 @@ void setupDisplay() {
   Display.display();
 }
 
-void turnDisplayOn() {
-  displayStatus = DISPLAY_ON;
-  digitalWrite(PIN_SCREEN_EN, HIGH);
-}
 
-void turnDisplayOff() {
-  displayStatus = DISPLAY_OFF;
-  digitalWrite(PIN_SCREEN_EN, LOW);
-}
 
 void drawProgressBar(uint8_t x, uint8_t y, uint8_t width, uint8_t height, float progress) {
 
@@ -71,5 +88,53 @@ void drawCompass(uint8_t x, uint8_t y, uint8_t radius) {
   Display.draw_line(x, y, (float)x + (float)radius * magXNormalized, (float)y + (float)radius * magYNormalized, OLED::tColor::WHITE);
 
   
+}
+
+//Board status screen
+void drawBoardStatusScreen() {
+
+  //Battery Voltage
+  Display.setCursor(4, 0);
+  Display.print("BATT(V): ");
+  Display.setCursor(SCREEN_WIDTH / 2, 0);
+  Display.print(batteryVoltage.getVoltage());
+
+  //Battery Current
+  Display.setCursor(4, 8);
+  Display.print("BATT(A): ");
+  Display.setCursor(SCREEN_WIDTH / 2, 8);
+  Display.print(batteryCurrent.getCurrent());
+
+  //Main 5V Voltage
+  Display.setCursor(4, 16);
+  Display.print("5V(V): ");
+  Display.setCursor(SCREEN_WIDTH / 2, 16);
+  Display.print(main5vVoltage.getVoltage());
+
+  //Pi 5V Voltage
+  Display.setCursor(4, 24);
+  Display.print("PI(V): ");
+  Display.setCursor(SCREEN_WIDTH / 2, 24);
+  Display.print(pi5vVoltage.getVoltage());
+
+  //Temperature Up
+  Display.setCursor(4, 32);
+  Display.print("T_UP(C): ");
+  Display.setCursor(SCREEN_WIDTH / 2, 32);
+  Display.print(tempUp.getTempCelcius());
+
+  //Temperature Down
+  Display.setCursor(4, 40);
+  Display.print("T_DN(C): ");
+  Display.setCursor(SCREEN_WIDTH / 2, 40);
+  Display.print(tempDown.getTempCelcius());
+
+  //Raspberry Pi Status
+  Display.setCursor(4, 56);
+  Display.print("RPI: ");
+  Display.setCursor(SCREEN_WIDTH / 2, 56);
+  Display.print(rpiStatusStrings[rpiStatus]);
+
+  Display.display();
 }
 

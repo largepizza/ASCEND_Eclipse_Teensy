@@ -17,6 +17,14 @@
 #define PIN_TEMP4 26
 #define PIN_TEMP5 41
 
+//Voltage Measurement
+#define PIN_BATTERY_VOLTAGE 40
+#define PIN_5V_MAIN_VOLTAGE 38
+#define PIN_5V_PI_VOLTAGE 27
+
+//Current Measurement
+#define PIN_BATTERY_CURRENT 39
+
 //OLED Screen
 #define PIN_SCREEN_EN 11
 #define PIN_SCREEN_FAULT 12

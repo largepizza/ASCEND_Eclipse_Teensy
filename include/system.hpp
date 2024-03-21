@@ -35,7 +35,43 @@ typedef enum : uint32_t {
     BUTTON_PRESSED,
 } button_t;
 
+//Power switch class
+class PowerSwitch {
+    public:
+        PowerSwitch(uint8_t enablePin, uint8_t faultPin) {
+            _enablePin = enablePin;
+            _faultPin = faultPin;
+        }
+        void enable() {
+            //Fault pin is pulled high when no fault is present
+            getStatus();
+            if (_fault) {
+                digitalWrite(_enablePin, LOW);
+                _enabled = false;
+            }
+            else {
+                digitalWrite(_enablePin, HIGH);
+                _enabled = true;
+            }
+        }
+        void disable() {
+            digitalWrite(_enablePin, LOW);
+            
+        }
+        bool getStatus() {
+            return _enabled;
+        }
+        bool getFault() {
+            _fault = !digitalRead(_faultPin);
+            return _fault;
+        }
+    private:
+        uint8_t _enablePin;
+        uint8_t _faultPin;
+        bool _enabled;
+        bool _fault;
 
+};
 
 
 //Global Variables
@@ -47,9 +83,17 @@ extern WT901C IMU;
 
 //Function Prototypes
 void setupPins();
-void buttonHandler();
 void getButton();
 void printButtonStatus();
+
+//Button ISR
+void buttonHandler();
+
+//Power switch fault ISR
+void piFaultHandler();
+void screenFaultHandler();
+
+
 
 
 

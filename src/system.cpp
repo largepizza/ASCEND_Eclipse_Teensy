@@ -13,6 +13,11 @@ uint32_t t_button = 0;
 //IMU
 WT901C IMU;
 
+//Power Switches
+PowerSwitch screenSwitch(PIN_SCREEN_EN, PIN_SCREEN_FAULT);
+PowerSwitch piSwitch(PIN_RPI_EN, PIN_RPI_FAULT);
+
+
 void setupPins() {
 
   //Board Buttons
@@ -51,7 +56,20 @@ void setupPins() {
   //Button ISR
   attachInterrupt(PIN_BUTTON, buttonHandler, CHANGE);
 
+  //Power switch fault ISR
+  attachInterrupt(PIN_SCREEN_FAULT, piFaultHandler, CHANGE);
+  attachInterrupt(PIN_RPI_FAULT, screenFaultHandler, CHANGE);
+
 }
+
+void piFaultHandler() {
+  piSwitch.getStatus();
+}
+
+void screenFaultHandler() {
+  screenSwitch.getStatus();
+}
+
 
 button_t lastStatus;
 

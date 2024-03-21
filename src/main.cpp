@@ -3,6 +3,7 @@
 #include "system.hpp"
 #include "sd_filesystem.hpp"
 #include "display.hpp"
+#include "sensors.hpp"
 //#include <wt901c.hpp>
 
 
@@ -12,6 +13,24 @@ extern boot_menu_t bootMenuStatus;
 extern button_t buttonStatus;
 extern uint32_t t_button;
 extern WT901C IMU;
+
+//Power Switches
+extern PowerSwitch screenSwitch;
+extern PowerSwitch piSwitch;
+
+//Voltage Sensors
+extern Voltage batteryVoltage;
+extern Voltage main5vVoltage;
+extern Voltage pi5vVoltage;
+
+//Current Sensors
+extern Current batteryCurrent;
+
+//Thermistors
+extern Thermistor tempUp;
+extern Thermistor tempDown;
+
+
 //Status Power On Variables
 uint32_t t_powerOn = 0;
 float powerOnHold = 0;
@@ -20,9 +39,14 @@ float powerOnHold = 0;
 bool buttonHold = false;
 float bootMenuHold = 0;
 
-//IMU
+//Status Data Logger Variables
+uint32_t t_screenRefresh = 0;
+
+
 
 void setup() {
+
+  digitalWrite(LED_BUILTIN, HIGH);
 
 
   //Setup Serial
@@ -32,10 +56,10 @@ void setup() {
   IMU.init();
 
 
-  digitalWrite(LED_BUILTIN, HIGH);
+  
   t_powerOn = millis();
 
-  turnDisplayOn();
+  screenSwitch.enable();
   setupDisplay();
 }
 
@@ -175,13 +199,50 @@ void loop() {
     ██████  ██   ██    ██    ██   ██     ███████  ██████   ██████   ██████  ███████ ██   ██ 
                                                                                                                                                                         
     */
-      //Data Logger
-      Display.clear();
-      Display.setCursor(0, 0);
-      Display.print("Data Logger");
-      Display.display();
 
-      delay(100);
+      //Sensor Data Reads
+      //Voltage
+      batteryVoltage.read();
+      main5vVoltage.read();
+      pi5vVoltage.read();
+      
+      //Current
+      batteryCurrent.read();
+
+      //Thermistors
+      tempUp.read();
+      tempDown.read();
+
+
+
+
+
+
+      //RPI Communication
+
+      //Remove before flight, button to enable RPI
+      if (buttonStatus == BUTTON_PRESSED) {
+        enableRPI();
+      }
+
+
+      //Save to SD Card
+
+
+      //Display Data Logger Screen
+      if (screenSwitch.getStatus()) {
+        if (millis() - t_screenRefresh > REFRESH_RATE) {
+          t_screenRefresh = millis();
+
+          Display.clear();
+          drawBoardStatusScreen();
+          Display.display();
+
+        }
+      }
+
+
+
 
       break;
     }

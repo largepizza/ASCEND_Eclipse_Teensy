@@ -5,6 +5,8 @@
 #include "pinout.h"
 #include <oled.h>
 #include <system.hpp>
+#include "sensors.hpp"
+#include "rpi_serial.hpp"
 
 typedef enum  {
     DISPLAY_OFF,
@@ -13,6 +15,8 @@ typedef enum  {
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
+#define REFRESH_RATE 10
+
 
 
 
@@ -32,6 +36,8 @@ void drawCompass(uint8_t x, uint8_t y, uint8_t radius);
 
 void displayPowerOnScreen();
 void displayBootMenuScreen();
+void drawBoardStatusScreen();
+
 
 
 #endif // DISPLAY_H
