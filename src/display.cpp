@@ -25,9 +25,12 @@ extern Thermistor tempDown;
 extern WT901C IMU;
 
 //Pi
-extern rpi_status_t rpiStatus;
+extern rpi_state_t rpiState;
+extern rpiMessage rxMessage;
+
 //Pi status strings
-String rpiStatusStrings[] = {"OFF", "WAITING", "DATA GOOD"};
+String rpiStateStrings[] = {"OFF", "WAITING", "DATA GOOD", "DATA ERROR", "LOST COMMS"};
+String rpiStatusStrings[] = {"IDLE", "OK", "ERROR", "PHOTO SUCCESS", "PHOTO ERROR", "RTL SUCCESS", "RTL ERROR", "RTL RESET"};
 
 
 
@@ -130,10 +133,19 @@ void drawBoardStatusScreen() {
   Display.print(tempDown.getTempCelcius());
 
   //Raspberry Pi Status
-  Display.setCursor(4, 56);
+  Display.setCursor(4, 48);
   Display.print("RPI: ");
-  Display.setCursor(SCREEN_WIDTH / 2, 56);
-  Display.print(rpiStatusStrings[rpiStatus]);
+  Display.setCursor(SCREEN_WIDTH * 0.3, 48);
+  if (rpiState == RPI_STATE_DATA_GOOD) {
+    Display.print(rpiStatusStrings[rxMessage.status]);
+  } else {
+    Display.print(rpiStateStrings[rpiState]);
+  }
+
+  //Raspberry Pi Message
+  Display.setCursor(4, 56);
+  Display.print(rxMessage.message);
+
 
   Display.display();
 }

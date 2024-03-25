@@ -4,6 +4,7 @@
 #include "sd_filesystem.hpp"
 #include "display.hpp"
 #include "sensors.hpp"
+#include "rpi_serial.hpp"
 //#include <wt901c.hpp>
 
 
@@ -51,9 +52,13 @@ void setup() {
 
   //Setup Serial
   Serial.begin(115200);
+  
   setupPins();
 
   IMU.init();
+
+  //Setup PI Serial
+  rpiSerialSetup();
 
 
   
@@ -219,11 +224,12 @@ void loop() {
 
 
       //RPI Communication
+      rpiSerialLoop();
 
       //Remove before flight, button to enable RPI
-      if (buttonStatus == BUTTON_PRESSED) {
-        enableRPI();
-      }
+      // if (buttonStatus == BUTTON_PRESSED) {
+      //   enableRPI();
+      // }
 
 
       //Save to SD Card
