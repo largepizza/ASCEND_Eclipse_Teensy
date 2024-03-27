@@ -15,7 +15,10 @@ typedef enum  {
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
+#define SCREEN_MARGIN 4
 #define REFRESH_RATE 10
+#define TEXT_ALIGN 1
+#define TEXT_SPACING 8
 
 
 

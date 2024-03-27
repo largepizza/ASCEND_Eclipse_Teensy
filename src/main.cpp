@@ -227,9 +227,9 @@ void loop() {
       rpiSerialLoop();
 
       //Remove before flight, button to enable RPI
-      // if (buttonStatus == BUTTON_PRESSED) {
-      //   enableRPI();
-      // }
+      if (buttonStatus == BUTTON_PRESSED) {
+        enableRPI();
+      }
 
 
       //Save to SD Card

@@ -26,11 +26,11 @@ extern WT901C IMU;
 
 //Pi
 extern rpi_state_t rpiState;
-extern rpiMessage rxMessage;
+extern piStruct rxMessage;
 
 //Pi status strings
 String rpiStateStrings[] = {"OFF", "WAITING", "DATA GOOD", "DATA ERROR", "LOST COMMS"};
-String rpiStatusStrings[] = {"IDLE", "OK", "ERROR", "PHOTO SUCCESS", "PHOTO ERROR", "RTL SUCCESS", "RTL ERROR", "RTL RESET"};
+
 
 
 
@@ -96,57 +96,107 @@ void drawCompass(uint8_t x, uint8_t y, uint8_t radius) {
 //Board status screen
 void drawBoardStatusScreen() {
 
-  //Battery Voltage
-  Display.setCursor(4, 0);
-  Display.print("BATT(V): ");
-  Display.setCursor(SCREEN_WIDTH / 2, 0);
-  Display.print(batteryVoltage.getVoltage());
+  //Divide the screen into 3 sections, two on the top half and one on the bottom half
+  //Top left: Battery section: voltage, current, temp.
+  //Top right: PCB section: 5v voltage, temp up
+  //Bottom: Pi section: rpi status, system status, camera status, rtl status, pi voltage, temp down
 
-  //Battery Current
-  Display.setCursor(4, 8);
-  Display.print("BATT(A): ");
-  Display.setCursor(SCREEN_WIDTH / 2, 8);
-  Display.print(batteryCurrent.getCurrent());
+  //Draw dividing horizontal line
+  Display.draw_line(0, SCREEN_HEIGHT / 2, SCREEN_WIDTH, SCREEN_HEIGHT / 2, OLED::tColor::WHITE);
+  //Draw dividing vertical line
+  Display.draw_line(SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, OLED::tColor::WHITE);
 
-  //Main 5V Voltage
-  Display.setCursor(4, 16);
-  Display.print("5V(V): ");
-  Display.setCursor(SCREEN_WIDTH / 2, 16);
-  Display.print(main5vVoltage.getVoltage());
+  //Draw rectangle top fill
+  Display.draw_rectangle(0, 0, SCREEN_WIDTH, 8, OLED::tFillmode::HOLLOW, OLED::tColor::WHITE);
+  Display.draw_rectangle(0, SCREEN_HEIGHT/2, SCREEN_WIDTH, SCREEN_HEIGHT/2 + 8, OLED::tFillmode::HOLLOW, OLED::tColor::WHITE);
 
-  //Pi 5V Voltage
-  Display.setCursor(4, 24);
-  Display.print("PI(V): ");
-  Display.setCursor(SCREEN_WIDTH / 2, 24);
-  Display.print(pi5vVoltage.getVoltage());
+  //Battery Section Top left
+  Display.setCursor(SCREEN_MARGIN, TEXT_ALIGN);
+  Display.print("Battery");
+  Display.setCursor(SCREEN_MARGIN, TEXT_ALIGN + TEXT_SPACING);
+  Display.print("V: ");
+  Display.print(batteryVoltage.getVoltage(), 2);
+  Display.setCursor(SCREEN_MARGIN, TEXT_ALIGN + 2 * TEXT_SPACING);
+  Display.print("I: ");
+  Display.print(batteryCurrent.getCurrent(), 2);
+  Display.setCursor(SCREEN_MARGIN, TEXT_ALIGN + 3 * TEXT_SPACING);
+  Display.print("T: ");
+  Display.print(tempDown.getTempCelcius(), 2);
 
-  //Temperature Up
-  Display.setCursor(4, 32);
-  Display.print("T_UP(C): ");
-  Display.setCursor(SCREEN_WIDTH / 2, 32);
-  Display.print(tempUp.getTempCelcius());
+  //PCB Section Top right
+  Display.setCursor(SCREEN_WIDTH / 2 + SCREEN_MARGIN, TEXT_ALIGN);
+  Display.print("PCB");
+  Display.setCursor(SCREEN_WIDTH / 2 + SCREEN_MARGIN, TEXT_ALIGN + TEXT_SPACING);
+  Display.print("V: ");
+  Display.print(main5vVoltage.getVoltage(), 2);
+  Display.setCursor(SCREEN_WIDTH / 2 + SCREEN_MARGIN, TEXT_ALIGN + 2 * TEXT_SPACING);
+  Display.print("T: ");
+  Display.print(tempUp.getTempCelcius(), 2);
 
-  //Temperature Down
-  Display.setCursor(4, 40);
-  Display.print("T_DN(C): ");
-  Display.setCursor(SCREEN_WIDTH / 2, 40);
-  Display.print(tempDown.getTempCelcius());
-
-  //Raspberry Pi Status
-  Display.setCursor(4, 48);
+  //Pi Section Bottom
+  Display.setCursor(SCREEN_MARGIN, SCREEN_HEIGHT / 2 + TEXT_ALIGN);
   Display.print("RPI: ");
-  Display.setCursor(SCREEN_WIDTH * 0.3, 48);
-  if (rpiState == RPI_STATE_DATA_GOOD) {
-    Display.print(rpiStatusStrings[rxMessage.status]);
-  } else {
-    Display.print(rpiStateStrings[rpiState]);
+  Display.print(rpiStateStrings[rpiState]);
+  Display.setCursor(SCREEN_MARGIN, SCREEN_HEIGHT / 2 + TEXT_ALIGN + TEXT_SPACING);
+  Display.print("SYS: ");
+  switch (rxMessage.status) {
+    case SYS_STATE_IDLE:
+      Display.print("OFF");
+      break;
+    case SYS_STATE_OK:
+      Display.print("OK");
+      break;
+    case SYS_STATE_ERROR:
+      Display.print("ERR");
+      break;
+  }
+  Display.setCursor(SCREEN_MARGIN, SCREEN_HEIGHT / 2 + TEXT_ALIGN + 2 * TEXT_SPACING);
+  Display.print("CAM: ");
+  switch (rxMessage.camera) {
+    case PHOTO_OFF:
+      Display.print("OFF");
+      break;
+    case PHOTO_SUCCESS:
+      Display.print("OK");
+      break;
+    case PHOTO_ERROR:
+      Display.print("ERR");
+      break;
+  }
+  Display.setCursor(SCREEN_MARGIN, SCREEN_HEIGHT / 2 + TEXT_ALIGN + 3 * TEXT_SPACING);
+  Display.print("RTL: ");
+  switch (rxMessage.rtl) {
+    case RTL_INACTIVE:
+      Display.print("OFF");
+      break;
+    case RTL_ACTIVE:
+      Display.print("OK");
+      break;
+    case RTL_FAIL:
+      Display.print("ERR");
+      break;
   }
 
-  //Raspberry Pi Message
-  Display.setCursor(4, 56);
-  Display.print(rxMessage.message);
+  //Bottom right side
+  Display.setCursor(SCREEN_WIDTH / 2 + SCREEN_MARGIN, SCREEN_HEIGHT / 2 + TEXT_ALIGN + TEXT_SPACING);
+  Display.print("V: ");
+  Display.print(pi5vVoltage.getVoltage(), 2);
+  Display.setCursor(SCREEN_WIDTH / 2 + SCREEN_MARGIN, SCREEN_HEIGHT / 2 + TEXT_ALIGN + 2 * TEXT_SPACING);
+  Display.print("T: ");
+  Display.print(tempDown.getTempCelcius(), 2);
+  //Print time
+  Display.setCursor(SCREEN_WIDTH / 2 + SCREEN_MARGIN, SCREEN_HEIGHT / 2 + TEXT_ALIGN + 3 * TEXT_SPACING);
+  Display.print(rxMessage.hour);
+  Display.print(":");
+  Display.print(rxMessage.minute);
+  Display.print(":");
+  Display.print(rxMessage.second);
+
+  
+
+  
 
 
-  Display.display();
+  
 }
 
