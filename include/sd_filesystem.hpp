@@ -59,12 +59,10 @@ class DataComposite {
 private:
     std::vector<std::shared_ptr<DataVariable>> dataVariables;
     String directoryPath;
+    String logFileName;
+
+    char filePath[128];
     File logFile;
-
-    void createDirectory() {
-        // Directory creation logic goes here
-    }
-
 
 
 public:
@@ -73,8 +71,18 @@ public:
         dataVariables.push_back(variable);
     }
 
+    void begin(String directoryPath, String logFileName) {
+        this->directoryPath = directoryPath;
+        this->logFileName = logFileName;
+        createDirectory();
+        sprintf(filePath, "%s/%s", directoryPath.c_str(), logFileName.c_str());
+        writeHeader();
+    }
+
 
     void logData() {
+
+        logFile = SD.open(filePath, FILE_WRITE);
         if (!logFile) {
             return; // Log file not opened properly
         }
@@ -85,7 +93,29 @@ public:
             logLine += var->print();
         }
         logFile.println(logLine);
+
+        logFile.close();
     }
+
+    void writeHeader() {
+
+        logFile = SD.open(filePath, FILE_WRITE);
+
+        if (!logFile) {
+            return; // Log file not opened properly
+        }
+
+        String header;
+        for (auto& var : dataVariables) {
+            if (header.length() > 0) header += ",";
+            header += var->getName();
+        }
+        logFile.println(header);
+
+        logFile.close();
+    }
+
+
 
     void end() {
         if (logFile) {
@@ -94,5 +124,12 @@ public:
         // Additional cleanup logic if needed
     }
 };
+
+void setupSD();
+void setupDataLog();
+void setupImuLog();
+void createDirectory();
+uint32_t findNextDirectoryIndex();
+
 
 #endif // SD_FILESYSTEM_H

@@ -18,7 +18,8 @@ typedef enum : uint32_t {
     STATUS_DATA_LOGGER,
     STATUS_IMU_DATA,
     STATUS_IMU_CALIBRATION,
-    STATUS_PI_STANDBY
+    STATUS_PI_STANDBY,
+    STATUS_THERMISTOR_TEST
 } status_t;
 
 //Boot Menu Status
@@ -26,7 +27,8 @@ typedef enum : uint32_t {
     BOOT_MENU_DATA_LOGGER,
     BOOT_IMU_DATA,
     BOOT_IMU_CALIBRATION,
-    BOOT_PI_STANDBY
+    BOOT_PI_STANDBY,
+    BOOT_THERMISTOR_TEST
 } boot_menu_t;
 
 //Button Status

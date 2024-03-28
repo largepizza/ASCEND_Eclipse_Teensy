@@ -13,3 +13,8 @@ Thermistor tempUp(PIN_TEMP_UP, 10000, 10000, 25, 3380);
 Thermistor tempDown(PIN_TEMP_DOWN, 10000, 10000, 25, 3380);
 
 //External Thermistors
+Thermistor tempRTL(PIN_TEMP1, 100000, 100000, 25, 3950);
+Thermistor tempExternal(PIN_TEMP2, 100000, 100000, 25, 3950);
+Thermistor tempAntenna(PIN_TEMP3, 100000, 100000, 25, 3950);
+Thermistor tempBattDown(PIN_TEMP4, 100000, 100000, 25, 3950);
+Thermistor tempBattUp(PIN_TEMP5, 100000, 100000, 25, 3950);

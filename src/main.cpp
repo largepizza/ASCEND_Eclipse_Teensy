@@ -31,6 +31,13 @@ extern Current batteryCurrent;
 extern Thermistor tempUp;
 extern Thermistor tempDown;
 
+//External Thermistors
+extern Thermistor tempRTL;
+extern Thermistor tempExternal;
+extern Thermistor tempAntenna;
+extern Thermistor tempBattDown;
+extern Thermistor tempBattUp;
+
 
 //Status Power On Variables
 uint32_t t_powerOn = 0;
@@ -158,6 +165,9 @@ void loop() {
             case BOOT_PI_STANDBY:
               systemStatus = STATUS_PI_STANDBY;
               break;
+            case BOOT_THERMISTOR_TEST:
+              systemStatus = STATUS_THERMISTOR_TEST;
+              break;
           }
         }
         
@@ -167,7 +177,7 @@ void loop() {
         buttonHold = false;
         bootMenuHold = 0;
         bootMenuStatus = (boot_menu_t)((uint32_t)bootMenuStatus + 1);
-        if (bootMenuStatus > BOOT_PI_STANDBY) {
+        if (bootMenuStatus > BOOT_THERMISTOR_TEST) {
           bootMenuStatus = BOOT_MENU_DATA_LOGGER;
         }
       }
@@ -186,6 +196,9 @@ void loop() {
           break;
         case BOOT_PI_STANDBY:
           drawCenteredText(SCREEN_WIDTH / 2, 24, "Pi Standby");
+          break;
+        case BOOT_THERMISTOR_TEST:
+          drawCenteredText(SCREEN_WIDTH / 2, 24, "Thermistor Test");
           break;
       }
 
@@ -217,6 +230,13 @@ void loop() {
       //Thermistors
       tempUp.read();
       tempDown.read();
+
+      //External Thermistors
+      tempRTL.read();
+      tempExternal.read();
+      tempAntenna.read();
+      tempBattDown.read();
+      tempBattUp.read();
 
 
 
@@ -345,6 +365,74 @@ void loop() {
       Display.clear();
       Display.setCursor(0, 0);
       Display.print("Pi Standby");
+      Display.display();
+      
+      break;
+    }
+    case STATUS_THERMISTOR_TEST:
+    {
+      /*
+      
+       ████████ ██   ██ ███████ ██████  ███    ███ ██ ███████ ████████  ██████  ██████      ████████ ███████ ███████ ████████ 
+          ██    ██   ██ ██      ██   ██ ████  ████ ██ ██         ██    ██    ██ ██   ██        ██    ██      ██         ██    
+          ██    ███████ █████   ██████  ██ ████ ██ ██ ███████    ██    ██    ██ ██████         ██    █████   ███████    ██    
+          ██    ██   ██ ██      ██   ██ ██  ██  ██ ██      ██    ██    ██    ██ ██   ██        ██    ██           ██    ██    
+          ██    ██   ██ ███████ ██   ██ ██      ██ ██ ███████    ██     ██████  ██   ██        ██    ███████ ███████    ██    
+                                                                                                                                                                                                                                                                                                   
+      */
+
+      //Thermistors
+      tempUp.read();
+      tempDown.read();
+
+      //External Thermistors
+      tempRTL.read();
+      tempExternal.read();
+      tempAntenna.read();
+      tempBattDown.read();
+      tempBattUp.read();
+
+
+      //Thermistor Test
+      Display.clear();
+
+      //Internal Thermistors
+      Display.setCursor(4, 0);
+      //PCB Up
+      Display.print("PCB Up: ");
+      Display.print(tempUp.getTempCelcius());
+      Display.print(" C");
+      //PCB Down
+      Display.setCursor(4, 8);
+      Display.print("PCB Down: ");
+      Display.print(tempDown.getTempCelcius());
+      Display.print(" C");
+      //Battery Up
+      Display.setCursor(4, 16);
+      Display.print("Batt Up: ");
+      Display.print(tempBattUp.getTempCelcius());
+      Display.print(" C");
+      //Battery Down
+      Display.setCursor(4, 24);
+      Display.print("Batt Down: ");
+      Display.print(tempBattDown.getTempCelcius());
+      Display.print(" C");
+      //RTL
+      Display.setCursor(4, 32);
+      Display.print("RTL: ");
+      Display.print(tempRTL.getTempCelcius());
+      Display.print(" C");
+      //External
+      Display.setCursor(4, 40);
+      Display.print("External: ");
+      Display.print(tempExternal.getTempCelcius());
+      Display.print(" C");
+      //Antenna
+      Display.setCursor(4, 48);
+      Display.print("Antenna: ");
+      Display.print(tempAntenna.getTempCelcius());
+      Display.print(" C");
+
       Display.display();
       
       break;
