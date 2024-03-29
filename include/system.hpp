@@ -9,6 +9,8 @@
 
 #define EEPROM_POWER_CYCLE_ADDRESS 0xAE
 #define BUTTON_HYSTERISIS 50
+#define LOW_POWER_VOLTAGE 10.5
+#define BATTERY_CRITICAL_VOLTAGE 10.0
 
 
 //Overall System Status

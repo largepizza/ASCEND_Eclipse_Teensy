@@ -74,3 +74,10 @@ void rpiSerialLoop() {
     }
 
 }
+
+void rpiSerialSend(Command_t command) {
+    piCommand txCommand;
+    txCommand.command = command;
+    myTransfer.txObj(txCommand, sizeof(txCommand));
+    myTransfer.sendData(sizeof(txCommand));
+}

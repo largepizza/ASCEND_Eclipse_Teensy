@@ -29,7 +29,7 @@ extern rpi_state_t rpiState;
 extern piStruct rxMessage;
 
 //Pi status strings
-String rpiStateStrings[] = {"OFF", "WAITING", "DATA GOOD", "DATA ERROR", "LOST COMMS"};
+String rpiStateStrings[] = {"OFF", "WAITING", "DATA GOOD", "DATA ERROR", "LOST COMMS", "SHUTDOWN"};
 
 extern sd_logger_t sdLoggerStatus;
 
@@ -168,6 +168,9 @@ void drawBoardStatusScreen() {
       break;
     case SYS_STATE_ERROR:
       Display.print("ERR");
+      break;
+    case SYS_STATE_SHUTDOWN:
+      Display.print("BYE :)");
       break;
   }
   Display.setCursor(SCREEN_MARGIN, SCREEN_HEIGHT / 2 + TEXT_ALIGN + 2 * TEXT_SPACING);

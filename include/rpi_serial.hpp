@@ -16,6 +16,7 @@ typedef enum : uint32_t {
     RPI_STATE_DATA_GOOD,
     RPI_STATE_DATA_ERROR,
     RPI_STATE_LOST_CONNECTION,
+    RPI_STATE_SHUTDOWN
 } rpi_state_t;
 
 
@@ -24,6 +25,7 @@ typedef enum : uint32_t {
     SYS_STATE_IDLE = 0,            //The system is idle
     SYS_STATE_OK = 1,              //The system heartbeat
     SYS_STATE_ERROR = 2,           //The system has encountered an error
+    SYS_STATE_SHUTDOWN = 3        //The system is shutting down
 } SystemState_t;
 
 //Raspberry Pi camera status
@@ -40,10 +42,16 @@ typedef enum : uint32_t {
   RTL_FAIL = 2,                   //The RTL has failed
 } RTLState_t;
 
+//Commands
+typedef enum : uint8_t {
+  CMD_ACK = 0,                   //The system is idle
+  CMD_SHUTDOWN = 1,              //Shutdown the system
+} Command_t;
 
 
 
 
+//Structure for the Raspberry Pi to send data to the Teensy
 typedef struct __attribute__((packed)) STRUCT {
   SystemState_t status;
   CameraState_t camera;
@@ -52,6 +60,11 @@ typedef struct __attribute__((packed)) STRUCT {
   int minute;
   int second;
 } piStruct;
+
+//Struct for the Teensy to send commands to the Raspberry Pi
+typedef struct __attribute__((packed)) COMMAND {
+  Command_t command;
+} piCommand;
 
 
 
@@ -67,5 +80,6 @@ void disableRPI();
 //Serial Transfer
 void rpiSerialSetup();
 void rpiSerialLoop();
+void rpiSerialSend(Command_t txCommand);
 
 #endif // RPI_SERIAL_H
