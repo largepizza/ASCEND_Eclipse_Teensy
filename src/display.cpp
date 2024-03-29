@@ -31,6 +31,8 @@ extern piStruct rxMessage;
 //Pi status strings
 String rpiStateStrings[] = {"OFF", "WAITING", "DATA GOOD", "DATA ERROR", "LOST COMMS"};
 
+extern sd_logger_t sdLoggerStatus;
+
 
 
 
@@ -132,6 +134,24 @@ void drawBoardStatusScreen() {
   Display.setCursor(SCREEN_WIDTH / 2 + SCREEN_MARGIN, TEXT_ALIGN + 2 * TEXT_SPACING);
   Display.print("T: ");
   Display.print(tempUp.getTempCelcius(), 2);
+  Display.setCursor(SCREEN_WIDTH / 2 + SCREEN_MARGIN, TEXT_ALIGN + 3 * TEXT_SPACING);
+  Display.print("SD: ");
+  switch (sdLoggerStatus) {
+    case SD_LOGGER_OFF:
+      Display.print("OFF");
+      break;
+    case SD_LOGGER_ON:
+      Display.print("ON");
+      break;
+    case SD_LOGGER_RECORDING:
+      Display.print("REC");
+      break;
+    case SD_LOGGER_ERROR:
+      Display.print("ERR");
+      break;
+  }
+  
+  
 
   //Pi Section Bottom
   Display.setCursor(SCREEN_MARGIN, SCREEN_HEIGHT / 2 + TEXT_ALIGN);

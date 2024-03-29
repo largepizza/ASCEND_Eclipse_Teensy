@@ -19,6 +19,7 @@ typedef enum : uint32_t {
     STATUS_IMU_DATA,
     STATUS_IMU_CALIBRATION,
     STATUS_PI_STANDBY,
+    STATUS_FILE_BROWSER,
     STATUS_THERMISTOR_TEST
 } status_t;
 
@@ -28,8 +29,17 @@ typedef enum : uint32_t {
     BOOT_IMU_DATA,
     BOOT_IMU_CALIBRATION,
     BOOT_PI_STANDBY,
+    BOOT_FILE_BROWSER,
     BOOT_THERMISTOR_TEST
 } boot_menu_t;
+
+//SD Data Logger Status
+typedef enum : uint32_t {
+    SD_LOGGER_OFF,
+    SD_LOGGER_ON,
+    SD_LOGGER_RECORDING,
+    SD_LOGGER_ERROR
+} sd_logger_t;
 
 //Button Status
 typedef enum : uint32_t {
@@ -58,6 +68,7 @@ class PowerSwitch {
         }
         void disable() {
             digitalWrite(_enablePin, LOW);
+            _enabled = false;
             
         }
         bool getStatus() {
@@ -81,6 +92,7 @@ extern status_t systemStatus;
 extern boot_menu_t bootMenuStatus;
 extern button_t buttonStatus;
 extern WT901C IMU;
+extern sd_logger_t sdLoggerStatus;
 
 
 //Function Prototypes

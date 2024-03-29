@@ -6,6 +6,7 @@
 status_t systemStatus = STATUS_POWER_ON;
 boot_menu_t bootMenuStatus = BOOT_MENU_DATA_LOGGER;
 button_t buttonStatus = BUTTON_UNPRESSED;
+sd_logger_t sdLoggerStatus = SD_LOGGER_OFF;
 
 //Button Hysterisis
 uint32_t t_button = 0;

@@ -5,6 +5,8 @@
 #include "display.hpp"
 #include "sensors.hpp"
 #include "rpi_serial.hpp"
+#include <MTP_Teensy.h>
+#include <SD.h>
 //#include <wt901c.hpp>
 
 
@@ -12,6 +14,7 @@
 extern status_t systemStatus;
 extern boot_menu_t bootMenuStatus;
 extern button_t buttonStatus;
+extern sd_logger_t sdLoggerStatus;
 extern uint32_t t_button;
 extern WT901C IMU;
 
@@ -49,6 +52,15 @@ float bootMenuHold = 0;
 
 //Status Data Logger Variables
 uint32_t t_screenRefresh = 0;
+uint32_t t_screenTimeout = 0;
+
+
+//Pi message
+extern piStruct rxMessage;
+
+//Composites
+extern DataComposite dataLog;
+extern DataComposite imuLog;
 
 
 
@@ -165,6 +177,9 @@ void loop() {
             case BOOT_PI_STANDBY:
               systemStatus = STATUS_PI_STANDBY;
               break;
+            case BOOT_FILE_BROWSER:
+              systemStatus = STATUS_FILE_BROWSER;
+              break;
             case BOOT_THERMISTOR_TEST:
               systemStatus = STATUS_THERMISTOR_TEST;
               break;
@@ -197,6 +212,9 @@ void loop() {
         case BOOT_PI_STANDBY:
           drawCenteredText(SCREEN_WIDTH / 2, 24, "Pi Standby");
           break;
+        case BOOT_FILE_BROWSER:
+          drawCenteredText(SCREEN_WIDTH / 2, 24, "File Browser");
+          break;
         case BOOT_THERMISTOR_TEST:
           drawCenteredText(SCREEN_WIDTH / 2, 24, "Thermistor Test");
           break;
@@ -218,41 +236,134 @@ void loop() {
                                                                                                                                                                         
     */
 
-      //Sensor Data Reads
-      //Voltage
-      batteryVoltage.read();
-      main5vVoltage.read();
-      pi5vVoltage.read();
-      
-      //Current
-      batteryCurrent.read();
+    //Begin SD Card
+    if (sdLoggerStatus == SD_LOGGER_OFF) {
+      if (!SD.begin(BUILTIN_SDCARD)) {
+        sdLoggerStatus = SD_LOGGER_ERROR;
+      }
+      else {
+        sdLoggerStatus = SD_LOGGER_ON;
+
+        setupSDLogger();
+
+      }
+    }
+
+    //Sensor Data Reads
+    //Voltage
+    batteryVoltage.read();
+    main5vVoltage.read();
+    pi5vVoltage.read();
+    
+    //Current
+    batteryCurrent.read();
+
+    //Thermistors
+    tempUp.read();
+    tempDown.read();
+
+    //External Thermistors
+    tempRTL.read();
+    tempExternal.read();
+    tempAntenna.read();
+    tempBattDown.read();
+    tempBattUp.read();
+
+    //RPI Communication
+    rpiSerialLoop();
+
+    if (dataLog.ready()) {
+      sdLoggerStatus = SD_LOGGER_RECORDING;
+      //Set dataVariable Values
+      //Timestamp
+      timestampDataVar->setValue((int)millis());
+      piHourVar->setValue((int)rxMessage.hour);
+      piMinuteVar->setValue((int)rxMessage.minute);
+      piSecondVar->setValue((int)rxMessage.second);
+
+      //System Status
+      systemStatusVar->setValue((int)systemStatus);
+      rpiStateVar->setValue((int)rpiState);
+      rpiSystemStateVar->setValue((int)rxMessage.status);
+      rpiCameraStateVar->setValue((int)rxMessage.camera);
+      rpiRTLStateVar->setValue((int)rxMessage.rtl);
+
+      //Voltage Sensors
+      batteryVoltageVar->setValue(batteryVoltage.getVoltage());
+      main5vVoltageVar->setValue(main5vVoltage.getVoltage());
+      pi5vVoltageVar->setValue(pi5vVoltage.getVoltage());
+
+      //Current Sensors
+      batteryCurrentVar->setValue(batteryCurrent.getCurrent());
 
       //Thermistors
-      tempUp.read();
-      tempDown.read();
+      tempUpVar->setValue(tempUp.getTempCelcius());
+      tempDownVar->setValue(tempDown.getTempCelcius());
 
       //External Thermistors
-      tempRTL.read();
-      tempExternal.read();
-      tempAntenna.read();
-      tempBattDown.read();
-      tempBattUp.read();
+      tempRTLVar->setValue(tempRTL.getTempCelcius());
+      tempExternalVar->setValue(tempExternal.getTempCelcius());
+      tempAntennaVar->setValue(tempAntenna.getTempCelcius());
+      tempBattDownVar->setValue(tempBattDown.getTempCelcius());
+      tempBattUpVar->setValue(tempBattUp.getTempCelcius());
 
+      //Write to SD Card
+      dataLog.logData();
+    }
 
+    if (imuLog.ready()) {
+      //IMU Data
+      IMU.getDataBasic();
+      //Timestamp
+      timestampIMUVar->setValue((int)millis());
+      //Accelerometer
+      imuAccelXVar->setValue(IMU.fAcc[0]);
+      imuAccelYVar->setValue(IMU.fAcc[1]);
+      imuAccelZVar->setValue(IMU.fAcc[2]);
+      //Gyroscope
+      imuGyroXVar->setValue(IMU.fGyro[0]);
+      imuGyroYVar->setValue(IMU.fGyro[1]);
+      imuGyroZVar->setValue(IMU.fGyro[2]);
+      //Magnetometer
+      imuMagXVar->setValue(IMU.fMag[0]);
+      imuMagYVar->setValue(IMU.fMag[1]);
+      imuMagZVar->setValue(IMU.fMag[2]);
+      //Angles
+      imuAngleXVar->setValue(IMU.fAngle[0]);
+      imuAngleYVar->setValue(IMU.fAngle[1]);
+      imuAngleZVar->setValue(IMU.fAngle[2]);
 
+      //Write to SD Card
+      imuLog.logData();
 
+    }
 
-
-      //RPI Communication
-      rpiSerialLoop();
-
+    
       //Remove before flight, button to enable RPI
       if (buttonStatus == BUTTON_PRESSED) {
-        enableRPI();
+        if (rpiState == RPI_STATE_POWER_OFF) {
+          //enableRPI();
+        }
+
+        t_screenTimeout = 0;
+        screenSwitch.enable();
+      }
+
+      if (rxMessage.status == RPI_STATE_DATA_GOOD && rxMessage.camera == PHOTO_SUCCESS && rxMessage.rtl == RTL_ACTIVE && t_screenTimeout == 0) {
+        t_screenTimeout = millis();
+      }
+
+      if (millis() - t_screenTimeout > DISPLAY_TIMEOUT && t_screenTimeout != 0) {
+        screenSwitch.disable();
       }
 
 
-      //Save to SD Card
+
+
+
+
+
+
 
 
       //Display Data Logger Screen
@@ -366,6 +477,58 @@ void loop() {
       Display.setCursor(0, 0);
       Display.print("Pi Standby");
       Display.display();
+      
+      break;
+    }
+    case STATUS_FILE_BROWSER: 
+    {
+      /*
+
+      ███████ ██ ██      ███████     ██████  ██████   ██████  ██     ██ ███████ ███████ ██████  
+      ██      ██ ██      ██          ██   ██ ██   ██ ██    ██ ██     ██ ██      ██      ██   ██ 
+      █████   ██ ██      █████       ██████  ██████  ██    ██ ██  █  ██ ███████ █████   ██████  
+      ██      ██ ██      ██          ██   ██ ██   ██ ██    ██ ██ ███ ██      ██ ██      ██   ██ 
+      ██      ██ ███████ ███████     ██████  ██   ██  ██████   ███ ███  ███████ ███████ ██   ██ 
+                                                                                                                                                  
+      */
+
+      batteryVoltage.read();
+
+      //No file browser if batteries are live!
+      if (batteryVoltage.getVoltage() > 7.5) {
+        Display.clear();
+        drawCenteredText(SCREEN_WIDTH / 2, 24, "File browser");
+        drawCenteredText(SCREEN_WIDTH / 2, 32, "on USB only!");
+        drawCenteredText(SCREEN_WIDTH / 2, 40, "no batteries!! :C");
+        Display.display();
+        delay(4000);
+        systemStatus = STATUS_POWER_ON;
+        break;
+      }
+
+      //File Browser
+      Display.clear();
+      drawCenteredText(SCREEN_WIDTH / 2, 16, "File Browser");
+      Display.display();
+
+      if (!SD.begin(BUILTIN_SDCARD)) {
+        Display.clear();
+        Display.setCursor(0, 0);
+        Display.print("SD Card Error");
+        Display.display();
+        delay(2000);
+        systemStatus = STATUS_POWER_ON;
+        break;
+      }
+
+      //Start MTP
+      MTP.begin();
+      MTP.addFilesystem(SD, "Storage");
+
+      //File Browser
+      while (1) {
+        MTP.loop();
+      }
       
       break;
     }

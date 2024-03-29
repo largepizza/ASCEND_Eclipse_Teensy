@@ -20,6 +20,8 @@ typedef enum  {
 #define TEXT_ALIGN 1
 #define TEXT_SPACING 8
 
+#define DISPLAY_TIMEOUT 10000
+
 
 
 
