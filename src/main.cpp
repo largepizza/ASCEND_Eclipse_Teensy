@@ -126,7 +126,14 @@ void loop()
     {
       // Data Logger if button is not held
       digitalWrite(LED_BUILTIN, LOW);
+      
       systemStatus = STATUS_DATA_LOGGER;
+
+      //Auto enable pi if batteries are live and no voltage ot pi
+      if (batteryVoltage.getVoltage() > 7.5 && pi5vVoltage.getVoltage() < 0.5)
+      {
+        enableRPI();
+      }
     }
 
     break;
@@ -347,26 +354,7 @@ void loop()
     // Low Power Mode
     if (batteryVoltage.getVoltage() < LOW_POWER_VOLTAGE)
     {
-      if (rpiState == RPI_STATE_DATA_GOOD)
-      {
-        rpiSerialSend(CMD_SHUTDOWN);
-      }
-      else if (rpiState == RPI_STATE_SHUTDOWN) {
-        if (pi5vVoltage.getVoltage() >= 4.9)
-        {
-          rpiState = RPI_STATE_POWER_OFF;
-          piSwitch.disable();
-        }
-
-      }
-      else if (rpiState == RPI_STATE_POWER_OFF)
-      {
-        
-      }
-      else
-      {
-        piSwitch.disable();
-      }
+      piSwitch.disable();
       
       
     }
@@ -379,18 +367,17 @@ void loop()
         enableRPI();
       }
 
-      if (rpiState == RPI_STATE_DATA_GOOD)
-      {
-        rpiSerialSend(CMD_SHUTDOWN);
+      if (!screenSwitch.getStatus()) {
+        t_screenTimeout = 0;
+        screenSwitch.enable();
+        setupDisplay();
       }
 
-      t_screenTimeout = 0;
-      screenSwitch.enable();
     }
 
     // Screen Timeout
 
-    if (rxMessage.status == RPI_STATE_DATA_GOOD && rxMessage.camera == PHOTO_SUCCESS && rxMessage.rtl == RTL_ACTIVE && t_screenTimeout == 0)
+    if (rxMessage.status == SYS_STATE_OK && rxMessage.camera == PHOTO_SUCCESS && rxMessage.rtl == RTL_ACTIVE && t_screenTimeout == 0)
     {
       t_screenTimeout = millis();
     }
