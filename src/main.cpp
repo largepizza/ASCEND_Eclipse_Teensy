@@ -129,6 +129,10 @@ void loop()
       
       systemStatus = STATUS_DATA_LOGGER;
 
+      batteryVoltage.read();
+      main5vVoltage.read();
+      pi5vVoltage.read();
+
       //Auto enable pi if batteries are live and no voltage ot pi
       if (batteryVoltage.getVoltage() > 7.5 && pi5vVoltage.getVoltage() < 0.5)
       {
